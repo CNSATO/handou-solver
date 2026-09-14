@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>汉兜助手 · Handou Solver</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🀄%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --line: #e7e5e4;
+      --line-soft: #f0eeed;
+      --text: #1c1917;
+      --muted: #78716c;
+      --subtle: #a8a29e;
+      --primary: #10b981;
+      --primary-soft: rgba(16,185,129,0.08);
+      --gray: #78716c;
+      --gray-soft: rgba(120,113,108,0.10);
+      --yellow: #ca8a04;
+      --yellow-soft: rgba(202,138,4,0.12);
+      --green: #16a34a;
+      --green-soft: rgba(22,163,74,0.12);
+      --red: #dc2626;
+      --red-soft: rgba(220,38,38,0.10);
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto Sans SC', system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+    body { min-height: 100dvh; padding: 24px 16px 64px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    .head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .head h1 { font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+    .head .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .head .stats { display: flex; gap: 12px; align-items: center; }
+    .stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; }
+    .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat .val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 600; margin-top: 2px; }
+    .stat .val.small { font-size: 13px; font-weight: 500; }
+    .stat .val .pct { color: var(--muted); font-size: 12px; font-weight: 400; margin-left: 4px; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    .panel + .panel { margin-top: 14px; }
+    .panel-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+
+    .rounds { display: flex; flex-direction: column; gap: 10px; }
+    .round { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; transition: border-color 0.15s; }
+    .round:hover { border-color: var(--subtle); }
+    .round-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .round-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--subtle); font-weight: 500; background: var(--surface); border: 1px solid var(--line); padding: 2px 7px; border-radius: 4px; }
+    .round-word { font-family: 'Noto Sans SC', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.05em; color: var(--text); flex: 1; }
+    .round-word .pinyin { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 8px; letter-spacing: 0; }
+    .round-actions { display: flex; gap: 6px; }
+    .icon-btn { font-family: inherit; font-size: 11px; padding: 4px 10px; background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; cursor: pointer; transition: all 0.15s; }
+    .icon-btn:hover { color: var(--text); border-color: var(--subtle); background: var(--surface); }
+    .icon-btn.danger:hover { color: var(--red); border-color: var(--red); background: var(--red-soft); }
+
+    .round-body { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .char { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+    .char-hanzi { font-family: 'Noto Sans SC', sans-serif; font-size: 18px; font-weight: 600; text-align: center; color: var(--text); margin-bottom: 6px; line-height: 1; }
+    .parts { display: flex; flex-direction: column; gap: 4px; }
+    .part { display: grid; grid-template-columns: 14px 1fr 16px; align-items: center; gap: 4px; }
+    .part-label { font-size: 9px; color: var(--subtle); font-weight: 600; text-align: center; }
+    .part-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text); text-align: center; padding: 3px 0; border-radius: 3px; background: var(--bg); }
+    .st-dot { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid var(--line); background: var(--surface); transition: all 0.15s; }
+    .st-dot:hover { transform: scale(1.15); }
+
+    .add-form { display: flex; gap: 8px; align-items: center; }
+    .add-form input { flex: 1; height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-family: 'Noto Sans SC', sans-serif; font-size: 16px; font-weight: 500; color: var(--text); transition: border-color 0.15s, background 0.15s; }
+    .add-form input:focus { outline: none; border-color: var(--primary); background: var(--primary-soft); }
+    .add-form input.error { border-color: var(--red); background: var(--red-soft); }
+    .add-form .err-msg { font-size: 12px; color: var(--red); margin-top: 4px; }
+
+    .btn { font-family: inherit; font-size: 13px; font-weight: 500; padding: 9px 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 8px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .btn:hover { border-color: var(--text); }
+    .btn.ghost { background: transparent; }
+    .btn.danger { color: var(--red); border-color: var(--red-soft); }
+    .btn.danger:hover { background: var(--red-soft); border-color: var(--red); }
+    .btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+    .btn.primary:hover { filter: brightness(0.95); }
+
+    .cand-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+    .cand-head .left { display: flex; align-items: center; gap: 10px; }
+    .cand-head .count { font-size: 12px; color: var(--muted); }
+    .cand-actions { display: flex; gap: 6px; align-items: center; }
+    .cand-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 480px; overflow-y: auto; padding: 4px; }
+    .cand-item { font-family: 'Noto Sans SC', sans-serif; font-size: 14px; padding: 6px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .cand-item:hover { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-1px); }
+    .cand-empty { color: var(--muted); font-size: 13px; padding: 20px; text-align: center; width: 100%; }
+
+    .legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+    .legend-item { display: flex; gap: 10px; align-items: start; padding: 10px; background: var(--bg); border-radius: 6px; }
+    .legend-item .swatch { width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; margin-top: 1px; }
+    .legend-item.gray .swatch { background: var(--gray); }
+    .legend-item.yellow .swatch { background: var(--yellow); }
+    .legend-item.green .swatch { background: var(--green); }
+    .legend-item .text { font-size: 12px; line-height: 1.5; }
+    .legend-item .text strong { display: block; font-size: 12px; margin-bottom: 2px; }
+    .legend-item .text span { color: var(--muted); }
+
+    .loading { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .loading .spinner { width: 32px; height: 32px; border: 3px solid var(--line); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .loading .msg { margin-left: 12px; color: var(--muted); font-size: 14px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .foot { text-align: center; color: var(--subtle); font-size: 11px; margin-top: 24px; }
+    .foot a { color: var(--muted); }
+
+    @media (max-width: 640px) {
+      body { padding: 16px 8px 48px; }
+      .head h1 { font-size: 22px; }
+      .round-body { grid-template-columns: repeat(2, 1fr); }
+      .legend { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <div class="msg">加载词库中…</div>
+  </div>
+
+  <div class="container" id="app" style="display:none">
+    <header class="head">
+      <div>
+        <h1>汉兜助手</h1>
+        <div class="sub">回合制累加筛选 · 基于 antfu/handle</div>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">词库</div>
+          <div class="val" id="totalCount">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">候选</div>
+          <div class="val small" id="candCount">— <span class="pct" id="candPct"></span></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="panel">
+      <div class="panel-title">添加新回合</div>
+      <div class="add-form">
+        <input id="newWord" placeholder="输入你猜的成语(4 个汉字),回车添加" maxlength="4" autocomplete="off" />
+        <button class="btn primary" id="btnAdd">+ 添加</button>
+      </div>
+      <div class="err-msg" id="errMsg" style="display:none"></div>
+    </div>
+
+    <div class="panel" id="roundsPanel" style="display:none">
+      <div class="panel-title">回合 <span id="roundsCount">0</span> · 点击色块切换 灰→黄→绿→无</div>
+      <div class="rounds" id="roundsList"></div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btnPickRandom">从候选中随机填一猜</button>
+        <button class="btn danger" id="btnClearAll">清空所有回合</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="cand-head">
+        <div class="left">
+          <div class="panel-title" style="margin:0">候选词</div>
+          <div class="count" id="candCount2">—</div>
+        </div>
+        <div class="cand-actions">
+          <span class="count" id="filterInfo"></span>
+          <button class="btn ghost" id="btnSortAlpha">按字母</button>
+          <button class="btn ghost" id="btnSortFreq">按词频</button>
+        </div>
+      </div>
+      <div class="cand-list" id="candList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">颜色含义</div>
+      <div class="legend">
+        <div class="legend-item gray">
+          <div class="swatch"></div>
+          <div class="text"><strong>灰</strong><span>答案中任何位置都没有这个声/韵/调</span></div>
+        </div>
+        <div class="legend-item yellow">
+          <div class="swatch"></div>
+          <div class="text"><strong>黄</strong><span>答案中有这个声/韵/调,但不在这个位置</span></div>
+        </div>
+        <div class="legend-item green">
+          <div class="swatch"></div>
+          <div class="text"><strong>绿</strong><span>答案的该位置就是这个声/韵/调</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      数据来源 <a href="https://github.com/antfu/handle" target="_blank" rel="noopener">antfu/handle</a> · MIT License
+    </div>
+  </div>
+
+  {{INLINE_DATA}}
+  {{SCRIPT}}
+</body>
+</html>

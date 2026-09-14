@@ -1,0 +1,25 @@
+# Node
+node_modules/
+package-lock.json
+
+# 构建临时文件
+.upstream/
+_upstream/
+_upstream_old/
+_backup_*/
+_*.tmp
+scripts/serve.log
+
+# 核心算法源(保护性不公开 — 混淆后的版本才上传)
+src/solver-core.js
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# 测试 / 本地
+*.log
+.env
+.env.local
