@@ -8,7 +8,7 @@
 
 ## ✨ 在线体验
 
-**GitHub Pages**: `https://<你的用户名>.github.io/handou-solver/`
+**[GitHub Pages](https://CNSATO.github.io/handou-solver/)**: `https://CNSATO.github.io/handou-solver/`
 
 也可以:
 - 直接双击 `dist/index.html`(已嵌入词库,无需 server)
@@ -114,36 +114,6 @@ node scripts\build.mjs
 ├── LICENSE                       # AGPL-3.0
 └── README.md
 ```
-
-## 🔒 源码保护
-
-为了在 GitHub 公开代码的同时防止创意被快速剽窃,本仓库采用了**双重保护**:
-
-### 1. 算法混淆
-
-`src/solver-core.js`(核心算法)**不出现在仓库里** —— 它被列在 `.gitignore` 中保护。混淆后的产物(`dist/solver-core.min.js` + 内嵌到 `dist/index.html` 的 base64 副本)才会提交。
-
-混淆由 [javascript-obfuscator](https://github.com/javascript-obfuscator/javascript-obfuscator) 完成:
-- 变量名 → a/b/c
-- 控制流平坦化
-- 死代码注入 + 字符串 RC4 加密
-- 反调试自保护
-
-混淆后的核心算法约 9 KB,人眼阅读成本极高(逆向需要几小时到几天)。
-
-### 2. AGPL-3.0 协议
-
-`LICENSE` 文件是 [GNU Affero General Public License v3](https://www.gnu.org/licenses/agpl-3.0.html)。核心条款:
-- ✅ 允许查看、修改、分发(必须保留版权)
-- ❌ 禁止商业闭源使用
-- ⚠️ 修改后必须以**同样协议**开源
-- ⚠️ 网络服务(如 SaaS)也必须开源(这是 AGPL 比 GPL 多出来的"网络条款")
-
-这意味着:
-- 别人可以 fork 学习,但不能拿去做成付费产品
-- 如果有公司把它做成服务(即使不卖代码),也必须公开他们的修改
-
-**当然,混淆 + 协议防的是"快速抄袭",不防"花时间认真重写"。** 算法的核心思路(拼音拆分、unmatched 池)是公开知识,不构成商业秘密。
 
 ## 🙏 致谢
 
