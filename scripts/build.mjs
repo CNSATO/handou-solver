@@ -75,20 +75,32 @@ function fill(tmpl, script, dataTag) {
 // 写文件
 fs.mkdirSync(path.join(root, 'dist'), { recursive: true })
 
-fs.writeFileSync(path.join(root, 'index.html'), fill(template, devScript, ''))
+// 开发版:写到 dev.html(不覆盖根 index.html,避免覆盖发布版)
+fs.writeFileSync(path.join(root, 'dev.html'), fill(template, devScript, ''))
+// 发布版
 fs.writeFileSync(path.join(root, 'dist', 'index.html'), fill(template, releaseScript, inlineData))
-// 也保留单独的 .min.js(让 devTools 能看到文件结构,方便调试)
+// 单独的 .min.js(让 devTools 能看到文件结构,方便调试)
 fs.writeFileSync(path.join(root, 'dist', 'solver-core.min.js'), coreMinJs)
+// standalone 单文件
 fs.writeFileSync(path.join(root, 'handou-solver.html'), fill(template, standaloneScript, inlineData))
 
-console.log('生成 index.html (开发版,引用外部 src/)')
+// GitHub Pages 只能从仓库根目录或 /docs 服务静态文件,不能从 /dist。
+// 把发布版复制到根目录的 index.html,这样 GitHub Pages 启用 main/(root) 就能直接访问。
+fs.copyFileSync(
+  path.join(root, 'dist', 'index.html'),
+  path.join(root, 'index.html')
+)
+
+console.log('生成 dev.html (开发版,引用外部 src/,本地起 server 用)')
 console.log('生成 dist/index.html (发布版,词库 + base64 核心算法内嵌,单文件)')
+console.log('生成 index.html (GitHub Pages 入口,← dist/index.html 副本)')
 console.log('生成 dist/solver-core.min.js (混淆核心算法,辅助文件)')
 console.log('生成 handou-solver.html (standalone 单文件,给朋友用)')
 
 const sizes = {
-  'index.html (开发)': fs.statSync(path.join(root, 'index.html')).size,
-  'dist/index.html (发布)': fs.statSync(path.join(root, 'dist', 'index.html')).size,
+  'index.html (GitHub Pages)': fs.statSync(path.join(root, 'index.html')).size,
+  'dev.html (开发版)': fs.statSync(path.join(root, 'dev.html')).size,
+  'dist/index.html (发布源)': fs.statSync(path.join(root, 'dist', 'index.html')).size,
   'dist/solver-core.min.js (混淆)': fs.statSync(path.join(root, 'dist', 'solver-core.min.js')).size,
   'handou-solver.html (standalone)': fs.statSync(path.join(root, 'handou-solver.html')).size,
 }

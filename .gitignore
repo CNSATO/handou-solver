@@ -13,6 +13,9 @@ scripts/serve.log
 # 核心算法源(保护性不公开 — 混淆后的版本才上传)
 src/solver-core.js
 
+# 开发版 HTML(引用 src/,而 solver-core.js 不上传,会指向 404)
+dev.html
+
 # 编辑器
 .vscode/
 .idea/
